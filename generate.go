@@ -9,6 +9,7 @@ import (
 	"go/format"
 
 	"github.com/BurntSushi/toml"
+	"strings"
 )
 
 func Generate(input io.Reader, structName, pkgName string) ([]byte, error) {
@@ -46,7 +47,11 @@ func generateBody(w io.Writer, data map[string]interface{}) {
 	sort.Strings(mk)
 
 	for _, key := range mk {
+		keyTitle := strings.Title(key)
 		typeName := reflect.TypeOf(key).Name()
-		fmt.Fprintf(w, "%s %s", key, typeName)
+		fmt.Fprintf(w, "%s %s `toml:\"%s\"`", keyTitle, typeName, key)
 	}
 }
+
+
+
