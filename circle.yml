@@ -15,7 +15,17 @@ test:
     - goveralls -coverprofile=./coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
 deployment:
-  release:
+  deployment:
+    branch: develop
+    commands:
+      - go get github.com/mitchellh/gox
+      - go get github.com/tcnksm/ghr
+      - gom exec gox --osarch "windows/386 windows/amd64" --output "dist/{{.Dir}}_{{.OS}}_{{.Arch}}" ./gotoml
+      - gom exec gox --osarch "linux/386 linux/amd64" --output "dist/{{.Dir}}_{{.OS}}_{{.Arch}}" ./gotoml
+      - gom exec gox --osarch "darwin/386 darwin/amd64" --output "dist/{{.Dir}}_{{.OS}}_{{.Arch}}" ./gotoml
+      - ghr -t $GITHUB_TOKEN -u $USERNAME -r $CIRCLE_PROJECT_REPONAME --replace --delete --prerelease `cat release_tag`  dist/
+
+  master:
     branch: master
     commands:
       - go get github.com/mitchellh/gox
