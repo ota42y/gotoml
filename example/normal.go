@@ -1,5 +1,11 @@
 package normal
 
+import (
+	"time"
+)
+
 type Normal struct {
-	Name string `toml:"name"`
+	Date time.Time `toml:"date"`
+	Name string    `toml:"name"`
+	Num  int64     `toml:"num"`
 }
