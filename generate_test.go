@@ -89,6 +89,17 @@ func TestGetTypeName(t *testing.T) {
 		t.Errorf("getTypeName(time.Time) should return %s but %s", expect, actual)
 	}
 	if pkgName != expectPackage {
-		t.Errorf("getTypeName(string) should return package name %s but %s", expectPackage, pkgName)
+		t.Errorf("getTypeName(time.Time) should return package name %s but %s", expectPackage, pkgName)
+	}
+	
+	var num int
+	expect = "int64"
+	expectPackage = ""
+	actual, pkgName = getTypeName(num)
+	if expect != actual {
+		t.Errorf("getTypeName(int) should return %s but %s", expect, actual)
+	}
+	if pkgName != expectPackage {
+		t.Errorf("getTypeName(int) should return package name %s but %s", expectPackage, pkgName)
 	}
 }

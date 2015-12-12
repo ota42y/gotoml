@@ -90,7 +90,11 @@ func getTypeName(i interface{}) (string, string) {
 	t := reflect.TypeOf(i)
 	pkgPath := t.PkgPath()
 	if pkgPath == "" {
-		return t.Name(), ""
+		name := t.Name()
+		if name == "int" {
+			name = "int64"
+		}
+		return name, ""
 	}
 
 	return fmt.Sprintf("%s.%s", t.PkgPath(), t.Name()), pkgPath
