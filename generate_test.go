@@ -91,7 +91,7 @@ func TestGetTypeName(t *testing.T) {
 	if pkgName != expectPackage {
 		t.Errorf("getTypeName(time.Time) should return package name %s but %s", expectPackage, pkgName)
 	}
-	
+
 	var num int
 	expect = "int64"
 	expectPackage = ""
