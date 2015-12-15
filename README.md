@@ -13,7 +13,7 @@ This tool isn't release, so many bug and not support all data type.
 ## Usage
 
 ```bash
-cat example/normal.toml | go run gotoml/main.go 
+cat $GOPATH/src/github.com/ota42y/gotoml/example/normal.toml | gotoml
 ```
 
 ## Install
@@ -21,7 +21,7 @@ cat example/normal.toml | go run gotoml/main.go
 To install, use `go get`:
 
 ```bash
-$ go get -d github.com/ota42y/gotoml/gotoml
+$ go get github.com/ota42y/gotoml/gotoml
 ```
 
 ## Contribution
