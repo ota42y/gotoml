@@ -89,15 +89,21 @@ func generateBody(w io.Writer, structName string, data map[string]interface{}) [
 func getTypeName(i interface{}) (string, string) {
 	t := reflect.TypeOf(i)
 	pkgPath := t.PkgPath()
-
 	// if specific package's struct(like time.Time), return with package name
 	if pkgPath != "" {
 		return fmt.Sprintf("%s.%s", t.PkgPath(), t.Name()), pkgPath
 	}
 
-	switch i.(type) {
+	switch iType := i.(type) {
 	case int:
 		return "int64", ""
+	case []interface{}:
+		if len(iType) == 0 {
+			// no items, so we cant't decide type.
+			return "[]interface{}", ""
+		}
+		typeName, pkgName := getTypeName(iType[0])
+		return fmt.Sprintf("[]%s", typeName), pkgName
 	default:
 		return t.Name(), ""
 	}
