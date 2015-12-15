@@ -1,1 +1,5 @@
 name = "name"
+date = 2015-01-31T18:08:03Z
+dates = [2015-01-31T18:08:03Z, 2015-02-01T16:08:03Z]
+num = 64 # always convert to int64 because we don't know it's within the limits of 32 bit
+numbers = [1, 2, 3]

@@ -4,25 +4,45 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/BurntSushi/toml"
 )
 
 func TestGenerateHead(t *testing.T) {
-	structName := "Foo"
 	pkgName := "main"
+	var packages []string
 
 	w := new(bytes.Buffer)
-	generateHead(w, structName, pkgName)
+	generateHead(w, pkgName, packages)
 
 	expect := `package main
 
-type Foo struct {
 `
 	actual := string(w.Bytes())
 
 	if expect != actual {
 		t.Errorf("generateHead expect %s but %s", expect, actual)
 	}
+
+	packages = append(packages, "")
+	packages = append(packages, "time")
+	w = new(bytes.Buffer)
+	generateHead(w, pkgName, packages)
+
+	expect = `package main
+import (
+"time"
+)
+
+`
+	actual = string(w.Bytes())
+
+	if expect != actual {
+		t.Errorf("generateHead expect %s but %s", expect, actual)
+	}
+
 }
 
 func TestGenerate(t *testing.T) {
@@ -41,8 +61,53 @@ func TestGenerate(t *testing.T) {
 	expect := string(b)
 
 	generateByte, err := Generate(file, structName, pkgName)
+	if err != nil {
+		t.Error(err)
+	}
+
 	actual := string(generateByte)
 	if expect != actual {
 		t.Errorf("Generate expect %s but %s", expect, actual)
 	}
+}
+
+func checkGetTypeName(input string, expectName string, expectPackage string, t *testing.T) {
+	var data map[string]interface{}
+	if _, err := toml.DecodeReader(strings.NewReader(input), &data); err != nil {
+		t.Error(err)
+		return
+	}
+
+	key := ""
+	for k := range data {
+		key = k
+	}
+
+	actual, pkgName := getTypeName(data[key])
+	if expectName != actual {
+		t.Errorf("getTypeName should return name %s but `%s`", expectName, actual)
+	}
+	if pkgName != expectPackage {
+		t.Errorf("getTypeName should return package name %s but `%s`", expectPackage, pkgName)
+	}
+}
+
+func TestGetTypeName(t *testing.T) {
+	input := `name = "Name"`
+	checkGetTypeName(input, "string", "", t)
+
+	input = `date = 1979-05-27T07:32:00Z`
+	checkGetTypeName(input, "time.Time", "time", t)
+
+	input = `num = 12`
+	checkGetTypeName(input, "int64", "", t)
+
+	input = `interface = []`
+	checkGetTypeName(input, "[]interface{}", "", t)
+
+	input = `numbers = [1, 2, 3]`
+	checkGetTypeName(input, "[]int64", "", t)
+
+	input = `dates = [2015-01-31T18:08:03Z, 2015-02-01T16:08:03Z]`
+	checkGetTypeName(input, "[]time.Time", "time", t)
 }
