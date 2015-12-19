@@ -13,17 +13,19 @@ import (
 )
 
 func Generate(input io.Reader, structName string, pkgName string) ([]byte, error) {
+	g := newGenerator()
+
 	// read toml file
-	var data map[string]interface{}
-	if _, err := toml.DecodeReader(input, &data); err != nil {
+	var tomlMap map[string]interface{}
+	if _, err := toml.DecodeReader(input, &tomlMap); err != nil {
 		return nil, err
 	}
 
 	body := new(bytes.Buffer)
-	packages := generateBody(body, structName, data)
+	g.generateBody(body, structName, tomlMap)
 
 	w := new(bytes.Buffer)
-	generateHead(w, pkgName, packages)
+	g.generateHead(w, pkgName)
 	fmt.Fprintf(w, body.String())
 
 	result, err := format.Source(w.Bytes())
@@ -34,8 +36,27 @@ func Generate(input io.Reader, structName string, pkgName string) ([]byte, error
 	return result, nil
 }
 
-func generateHead(w io.Writer, pkgName string, packages []string) {
+type generator struct {
+	tomlData      map[string]interface{} // already checked data
+	usingPackages map[string]bool
+}
+
+func newGenerator() *generator {
+	return &generator{
+		tomlData:      make(map[string]interface{}),
+		usingPackages: make(map[string]bool),
+	}
+}
+
+func (g *generator) generateHead(w io.Writer, pkgName string) {
 	fmt.Fprintf(w, "package %s\n", pkgName)
+
+	// write all package names
+	var packages []string
+	for k := range g.usingPackages {
+		packages = append(packages, k)
+	}
+	sort.Strings(packages)
 
 	if len(packages) != 0 {
 		fmt.Fprintf(w, "import (\n")
@@ -52,7 +73,7 @@ func generateHead(w io.Writer, pkgName string, packages []string) {
 	fmt.Fprintf(w, "\n")
 }
 
-func generateBody(w io.Writer, structName string, data map[string]interface{}) []string {
+func (g *generator) generateBody(w io.Writer, structName string, data map[string]interface{}) {
 	fmt.Fprintf(w, "type %s struct {\n", structName)
 
 	// sort keys
@@ -65,25 +86,16 @@ func generateBody(w io.Writer, structName string, data map[string]interface{}) [
 	sort.Strings(mk)
 
 	// create struct
-	pkgMap := make(map[string]bool)
 	for _, key := range mk {
 		keyTitle := strings.Title(key)
 		typeName, pkgPath := getTypeName(data[key])
 
 		// save package name
-		pkgMap[pkgPath] = true
+		g.usingPackages[pkgPath] = true
 
 		fmt.Fprintf(w, "%s %s `toml:\"%s\"`\n", keyTitle, typeName, key)
 	}
 	fmt.Fprintf(w, "}")
-
-	// return all package names
-	packages := make([]string, 0)
-	for k, _ := range pkgMap {
-		packages = append(packages, k)
-	}
-	sort.Strings(packages)
-	return packages
 }
 
 func getTypeName(i interface{}) (string, string) {
