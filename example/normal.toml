@@ -7,3 +7,7 @@ numbers = [1, 2, 3]
 [group]
 name = "μ's"
 school = "National Society of Otonoki"
+
+[site]
+name = "Saitama Super Arena"
+num = 36500

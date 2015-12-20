@@ -11,9 +11,15 @@ type Normal struct {
 	Name    string      `toml:"name"`
 	Num     int64       `toml:"num"`
 	Numbers []int64     `toml:"numbers"`
+	Site    Site        `toml:"site"`
 }
 
 type Group struct {
 	Name   string `toml:"name"`
 	School string `toml:"school"`
+}
+
+type Site struct {
+	Name string `toml:"name"`
+	Num  int64  `toml:"num"`
 }
