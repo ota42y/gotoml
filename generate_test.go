@@ -6,9 +6,64 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/ota42y/gotoml/example"
 )
+
+func isValidToml(t *testing.T, b bool) {
+	if !b {
+		t.Error("invalid toml")
+	}
+}
+
+func TestExampleData(t *testing.T) {
+	// example/normal.go is valid toml struct?
+	var n example.Normal
+
+	file, err := os.Open("example/normal.toml")
+	if err != nil {
+		t.Error(err)
+	}
+	// read toml file
+	if _, err := toml.DecodeReader(file, &n); err != nil {
+		t.Error(err)
+	}
+
+	isValidToml(t, n.Name == "Dream Sensation")
+
+	d, err := time.Parse("2006-01-02T15:04:05Z", "2015-01-31T18:08:03Z")
+	if err != nil {
+		t.Error(err)
+	}
+	isValidToml(t, n.Date == d)
+
+	dates := make([]time.Time, 2)
+	dates[0], err = time.Parse("2006-01-02T15:04:05Z", "2015-01-31T18:08:03Z")
+	if err != nil {
+		t.Error(err)
+	}
+	dates[1], err = time.Parse("2006-01-02T15:04:05Z", "2015-02-01T16:08:03Z")
+	if err != nil {
+		t.Error(err)
+	}
+
+	isValidToml(t, n.Dates[0] == dates[0])
+	isValidToml(t, n.Dates[1] == dates[1])
+
+	isValidToml(t, n.Num == 64)
+
+	isValidToml(t, n.Numbers[0] == 1)
+	isValidToml(t, n.Numbers[1] == 2)
+	isValidToml(t, n.Numbers[2] == 3)
+
+	isValidToml(t, n.Group.Name == "μ's")
+	isValidToml(t, n.Group.School == "National Society of Otonoki")
+
+	isValidToml(t, n.Site.Name == "Saitama Super Arena")
+	isValidToml(t, n.Site.Num == 36500)
+}
 
 func TestGenerateHead(t *testing.T) {
 	pkgName := "main"
@@ -46,9 +101,23 @@ import (
 
 }
 
+func TestGenerateError(t *testing.T) {
+	invalidData := "invalid"
+	input := strings.NewReader(invalidData)
+
+	b, err := Generate(input, "", "")
+	if err == nil {
+		t.Error("if invalid toml data, should return error, but nil")
+	}
+
+	if b != nil {
+		t.Errorf("if invalid toml data, should return nil, but %v", b)
+	}
+}
+
 func TestGenerate(t *testing.T) {
 	structName := "Normal"
-	pkgName := "normal"
+	pkgName := "example"
 
 	file, err := os.Open("example/normal.toml")
 	if err != nil {
