@@ -80,8 +80,20 @@ func (g *generator) generateHead(w io.Writer, pkgName string) {
 }
 
 func (g *generator) generateBody(w io.Writer) {
-	for {
-		for k, v := range g.tomlData {
+	needCheck := true
+	for needCheck {
+		needCheck = false
+
+		// sort keys
+		mk := make([]string, len(g.tomlData))
+		i := 0
+		for k := range g.tomlData {
+			mk[i] = k
+			i++
+		}
+		sort.Strings(mk)
+
+		for _, k := range mk {
 			parsed, ok := g.tomlParsed[k]
 			if !ok {
 				err := fmt.Errorf("toml parse error")
@@ -89,12 +101,12 @@ func (g *generator) generateBody(w io.Writer) {
 			}
 
 			if !parsed {
-				g.parseStruct(w, k, v)
+				g.parseStruct(w, k, g.tomlData[k])
 				g.tomlParsed[k] = true
-				continue
+				needCheck = true
+				break
 			}
 		}
-		break
 	}
 }
 
