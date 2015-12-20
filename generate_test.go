@@ -101,6 +101,20 @@ import (
 
 }
 
+func TestGenerateError(t *testing.T) {
+	invalidData := "invalid"
+	input := strings.NewReader(invalidData)
+
+	b, err := Generate(input, "", "")
+	if err == nil {
+		t.Error("if invalid toml data, should return error, but nil")
+	}
+
+	if b != nil {
+		t.Errorf("if invalid toml data, should return nil, but %v", b)
+	}
+}
+
 func TestGenerate(t *testing.T) {
 	structName := "Normal"
 	pkgName := "example"
