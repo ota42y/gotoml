@@ -72,11 +72,13 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func checkGetTypeName(input string, expectName string, expectPackage string, t *testing.T) {
+func checkGetTypeName(input string, expectName string, expectPackage string, t *testing.T) *generator {
+	g := newGenerator()
+
 	var data map[string]interface{}
 	if _, err := toml.DecodeReader(strings.NewReader(input), &data); err != nil {
 		t.Error(err)
-		return
+		return nil
 	}
 
 	key := ""
@@ -84,13 +86,15 @@ func checkGetTypeName(input string, expectName string, expectPackage string, t *
 		key = k
 	}
 
-	actual, pkgName := getTypeName(data[key])
+	actual, pkgName := g.getTypeName(key, data[key])
 	if expectName != actual {
 		t.Errorf("getTypeName should return name %s but `%s`", expectName, actual)
 	}
 	if pkgName != expectPackage {
 		t.Errorf("getTypeName should return package name %s but `%s`", expectPackage, pkgName)
 	}
+
+	return g
 }
 
 func TestGetTypeName(t *testing.T) {
@@ -111,4 +115,19 @@ func TestGetTypeName(t *testing.T) {
 
 	input = `dates = [2015-01-31T18:08:03Z, 2015-02-01T16:08:03Z]`
 	checkGetTypeName(input, "[]time.Time", "time", t)
+
+	input = `[group]
+name = "A-RISE"
+school = "Society of UTX"
+`
+	g := checkGetTypeName(input, "Group", "", t)
+	_, ok := g.tomlData["Group"]
+	if !ok {
+		t.Errorf("getTypeName should save sub struct but not saved %v", g.tomlData)
+	}
+
+	v, ok := g.tomlParsed["Group"]
+	if !ok || v {
+		t.Errorf("getTypeName should save sub struct but not saved %v", g.tomlParsed)
+	}
 }
