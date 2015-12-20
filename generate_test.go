@@ -12,10 +12,10 @@ import (
 
 func TestGenerateHead(t *testing.T) {
 	pkgName := "main"
-	var packages []string
 
 	w := new(bytes.Buffer)
-	generateHead(w, pkgName, packages)
+	g := newGenerator()
+	g.generateHead(w, pkgName)
 
 	expect := `package main
 
@@ -26,10 +26,11 @@ func TestGenerateHead(t *testing.T) {
 		t.Errorf("generateHead expect %s but %s", expect, actual)
 	}
 
-	packages = append(packages, "")
-	packages = append(packages, "time")
+	g = newGenerator()
+	g.usingPackages[""] = true
+	g.usingPackages["time"] = true
 	w = new(bytes.Buffer)
-	generateHead(w, pkgName, packages)
+	g.generateHead(w, pkgName)
 
 	expect = `package main
 import (
